@@ -42,8 +42,10 @@ def walk_music_tree(current_dir, root, output_dir, relative_path):
 			just_name = os.path.splitext(file.name)[0] # name without extension
 			extension = os.path.splitext(file.name)[1].lower()
 			if extension in SOURCE_MUSIC_EXTENSIONS:
-				sound = AudioSegment.from_file(file.path, extension.replace('.', ''))
 				new_path = os.path.join(root, output_dir, relative_path, just_name + OUTPUT_MUSIC_EXTENSION)
+				if (os.path.exists(new_path)):
+					continue
+				sound = AudioSegment.from_file(file.path, extension.replace('.', ''))
 				cover_image = None
 				if extension == FLAC_EXTENSION:
 					cover_image = get_cover_image(file.path)
@@ -51,6 +53,8 @@ def walk_music_tree(current_dir, root, output_dir, relative_path):
 				sound.export(new_path, format="mp3", bitrate="256k", tags=mediainfo(file.path).get('TAG', {}), cover=cover_image)
 			elif extension == OUTPUT_MUSIC_EXTENSION:
 				new_path = os.path.join(root, output_dir, relative_path, file.name)
+				if (os.path.exists(new_path)):
+					continue
 				copyfile(file.path, new_path)
 
 
