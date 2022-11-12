@@ -11,12 +11,14 @@ FLAC_EXTENSION = '.flac'
 OUTPUT_MUSIC_EXTENSION = '.mp3'
 FRON_COVER_TYPE = 3
 
+
 def create_dir_if_not_exists(dirname):
 	if (os.path.isdir(dirname)):
 		return
 	if (os.path.exists(dirname)):
 		raise Exception("'" + dirname + "' is a file. Cannot create directory")
 	os.mkdir(dirname)
+
 
 def get_cover_image(file_path):
 	song = FLAC(file_path)
@@ -30,9 +32,13 @@ def get_cover_image(file_path):
 	return None
 
 
+def format_filename(filename):
+	blacklist = "\\:*?\"<>|"
+	return "".join(symb for symb in filename if not symb in blacklist)
+
 
 def walk_music_tree(current_dir, root, output_dir, relative_path):
-	print('relative_path: ' + str(relative_path))
+	print('Processed path: ' + str(relative_path))
 	for file in os.scandir(current_dir):
 		if file.is_dir():
 			new_relative_path = os.path.join(relative_path, file.name)
@@ -43,14 +49,22 @@ def walk_music_tree(current_dir, root, output_dir, relative_path):
 			extension = os.path.splitext(file.name)[1].lower()
 			if extension in SOURCE_MUSIC_EXTENSIONS:
 				new_path = os.path.join(root, output_dir, relative_path, just_name + OUTPUT_MUSIC_EXTENSION)
-				if (os.path.exists(new_path)):
+				formatted_path = format_filename(new_path)
+				if (formatted_path != new_path):
+					print("---")
+					print("strange symbols (were deleted)")
+					print("new_path: " + new_path)
+					print("formatted_path: " + formatted_path)
+					print("---")
+				if (os.path.exists(new_path) or os.path.exists(formatted_path)):
 					continue
 				sound = AudioSegment.from_file(file.path, extension.replace('.', ''))
 				cover_image = None
 				if extension == FLAC_EXTENSION:
 					cover_image = get_cover_image(file.path)
-					print('cover_image: ' + cover_image)
-				sound.export(new_path, format="mp3", bitrate="256k", tags=mediainfo(file.path).get('TAG', {}), cover=cover_image)
+				sound.export(formatted_path, format="mp3", bitrate="256k", tags=mediainfo(file.path).get('TAG', {}), cover=cover_image)
+				if cover_image is not None:
+					os.remove(cover_image)
 			elif extension == OUTPUT_MUSIC_EXTENSION:
 				new_path = os.path.join(root, output_dir, relative_path, file.name)
 				if (os.path.exists(new_path)):
