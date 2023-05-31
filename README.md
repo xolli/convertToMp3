@@ -5,7 +5,7 @@ This script just convert flac files to mp3 files
 Using:
 ```
 pip3 install -r requirements.txt
-python3 convertToMp3.py <directory with mp3 files> <new directory>
+python3 convertToMp3.py <directory with flac files> <new directory>
 ```
 
 Example:
